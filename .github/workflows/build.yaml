@@ -1,0 +1,52 @@
+name: RPM build
+on: [push]
+env:
+  ARTIFACTORY_URL: https://rpmb.jfrog.io
+  BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+  BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
+  DOCKER_USER: ${{ secrets.DOCKER_USER }}
+  DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+  OS7: 7.9.2009
+  OS8: stream8
+  OS7TAG: 7.9.2009
+  OS8TAG: stream8
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - compose-file: docker-compose.yml
+            repo: php74custom
+            build: centos7gmagick
+            uploader: centos7bintray
+            repo_path: ""
+          - compose-file: docker-compose.yml
+            repo: php74custom
+            build: stream8gmagick
+            uploader: stream8bintray
+            repo_path: centos/8-stream
+          - compose-file: docker-compose.php81.yml
+            repo: php81custom
+            build: centos7gmagickphp81
+            uploader: centos7bintray
+            repo_path: ""
+          - compose-file: docker-compose.php81.yml
+            repo: php81custom
+            build: stream8gmagickphp81
+            uploader: stream8bintray
+            repo_path: centos/8-stream
+    env:
+      BUILD_COMPOSE_FILE: ${{ matrix.compose-file }}
+      BINTRAY_REPO: ${{ matrix.repo }}
+      BUILD: ${{ matrix.build }}
+      UPLOADER: ${{ matrix.uploader }}
+      REPO_PATH: ${{ matrix.repo_path }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - run: docker-compose -f $BUILD_COMPOSE_FILE build --no-cache $BUILD
+      - run: docker-compose -f $BUILD_COMPOSE_FILE up --exit-code-from $BUILD $BUILD
+      - run: docker-compose -f rpmbuild/docker-compose.bintray.yml pull $UPLOADER
+      - run: docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm -e BINTRAY_USER=$BINTRAY_USER -e BINTRAY_API_KEY=$BINTRAY_API_KEY -e BINTRAY_REPO=$BINTRAY_REPO -e ARTIFACTORY_URL=$ARTIFACTORY_URL -e REPO_PATH=$REPO_PATH $UPLOADER

@@ -1,0 +1,23 @@
+version: "3"
+services:
+  centos7gmagick:
+    volumes:
+      - rpm7:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      args:
+        centos: $OS7
+  stream8gmagick:
+    volumes:
+      - rpm8stream:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      dockerfile: Dockerfile.el8
+      args:
+        centos: $OS8
+
+volumes:
+  rpm7:
+    name: rpm7
+  rpm8stream:
+    name: rpm8stream
