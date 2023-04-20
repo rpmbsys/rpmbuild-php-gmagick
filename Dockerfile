@@ -1,11 +1,11 @@
-ARG centos=7.9.2009
+ARG os=8.7.20221112
 ARG image=php-7.4
 
-FROM aursu/pearbuild:${centos}-${image}
+FROM aursu/pearbuild:${os}-${image}
 
-RUN yum -y install \
+RUN dnf -y install \
         GraphicsMagick-devel \
-    && yum clean all && rm -rf /var/cache/yum
+    && dnf clean all && rm -rf /var/cache/dnf
 
 COPY SOURCES ${BUILD_TOPDIR}/SOURCES
 COPY SPECS ${BUILD_TOPDIR}/SPECS
