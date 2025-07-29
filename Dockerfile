@@ -3,7 +3,9 @@ ARG image=php-8.4
 
 FROM aursu/pearbuild:${os}-${image}
 
-RUN dnf -y install \
+# 10.0 and 10z doesn't contain GraphicsMagick-devel, so we need to use 10 or 10.1
+RUN sed -i 's/\${releasever_minor:+-z}//' /etc/yum.repos.d/epel.repo \
+    && dnf -y install \
         GraphicsMagick-devel \
     && dnf clean all && rm -rf /var/cache/dnf
 
